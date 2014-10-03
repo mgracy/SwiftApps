@@ -9,14 +9,29 @@
 import Foundation
 import UIKit
 class AnswerViewController: UIViewController {
+    var currentLevel = 0
     var currentQuestion = 0
-    let allQuestions = [
+ let allQuestions = [
         ["2004年奥运会在哪个城市举例", "A 北京" ,"B 里约热内卢", "C 雅典" ,"D 伦敦"],
         ["2008年奥运会在哪个城市举例", "A 北京" ,"B 里约热内卢", "C 雅典" ,"D 伦敦"],
         ["2012年奥运会在哪个城市举例", "A 北京" ,"B 里约热内卢", "C 雅典" ,"D 伦敦"],
         ["2016年奥运会在哪个城市举例", "A 北京" ,"B 里约热内卢", "C 雅典" ,"D 伦敦"]
     ]
+  /*
+    let allQuestions = [
+        ["2+3", "A 2" ,"B 3", "C 4" ,"D 5"],
+        ["2-2", "A 0" ,"B 1", "C 2" ,"D 3"],
+        ["4-2", "A 1" ,"B 2", "C 3" ,"D 4"],
+        ["2+0", "A 0" ,"B 1", "C 2" ,"D 3"],
+        ["4+2", "A 2" ,"B 4", "C 6" ,"D 8"],
+        ["6-5", "A 0" ,"B 1", "C 2" ,"D 3"],
+        ["6-1", "A 2" ,"B 3", "C 4" ,"D 5"],
+        ["3+3", "A 2" ,"B 4", "C 6" ,"D 8"],
+        ["1+5", "A 2" ,"B 4", "C 6" ,"D 8"]
+    ]
+  */
     let rightAnswer = [3, 1, 4, 2]
+  //  let rightAnswer = [4, 1, 2, 3, 3, 2, 4, 3, 3]
             var buttonA = UIButton()
             var buttonB = UIButton()
             var buttonC = UIButton()
@@ -29,14 +44,16 @@ class AnswerViewController: UIViewController {
     
     var questionUpdateTimer:NSTimer?
     var countDownTimer:NSTimer?
-    var timeNum = 20
+    var timeNum = 60
+    var rightNum = 0
+    var totalNum = 4
     var lblTime = UILabel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
-        countDownTimer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "updateTimer", userInfo: nil, repeats: true)
+          println("AnswerViewController -> viewDidLoad")
+
         var backImageView = UIImageView()
         backImageView.frame = CGRectMake(0,0,480,320)
         var image = UIImage(named:"answerSheetBG.jpeg")
@@ -116,10 +133,33 @@ class AnswerViewController: UIViewController {
         self.view.addSubview(lblTime)
     }
     
+    func setOriginalState() {
+        timeNum = 60
+        currentQuestion = 0
+        rightNum = 0
+        buttonA.setImage(UIImage(named:"usualState.png"), forState: .Normal)
+         buttonB.setImage(UIImage(named:"usualState.png"), forState: .Normal)
+         buttonC.setImage(UIImage(named:"usualState.png"), forState: .Normal)
+         buttonD.setImage(UIImage(named:"usualState.png"), forState: .Normal)
+        
+        buttonA.enabled = true
+        buttonB.enabled = true
+        buttonC.enabled = true
+        buttonD.enabled = true
+        
+        lblQuestion.text = allQuestions[currentQuestion][0]
+        lblbuttonA.text = allQuestions[currentQuestion][1]
+        lblbuttonB.text = allQuestions[currentQuestion][2]
+        lblbuttonC.text = allQuestions[currentQuestion][3]
+        lblbuttonD.text = allQuestions[currentQuestion][4]
+        lblTime.text = "00:\(timeNum)"
+    }
+    
     func judgeResult(sender:UIButton) {
         
         if sender.tag == rightAnswer[currentQuestion] {
             sender.setImage(UIImage(named:"rightAns.png"),forState:.Normal)
+            rightNum++
         }
         else
         {
@@ -140,14 +180,24 @@ class AnswerViewController: UIViewController {
     
     func updateTimer() {
         timeNum--
-        timeNum--
+
         if timeNum <= 0
         {
             countDownTimer?.invalidate()
+            timeNum = 20
             //弹出警告框: UIAlertView
             var alert = UIAlertController(title: "提示", message: "亲，时间已到！", preferredStyle: .Alert)
-            var actionYes = UIAlertAction(title: "重做", style: .Default, handler: nil)
-               var actionNo = UIAlertAction(title: "不重做", style: .Default, handler: nil)
+            var actionYes = UIAlertAction(title: "重做", style: .Default, handler: { act in self.countDownTimer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "updateTimer", userInfo: nil, repeats: true) })
+            var actionNo = UIAlertAction(title: "不重做", style: .Default, handler: {act in  var rvc = ResultViewController()
+                rvc.timeNum = 60
+                rvc.rightNum = self.rightNum
+                rvc.totalNum = self.totalNum
+                rvc.wrongNum = self.totalNum - self.rightNum
+                if rvc.rightNum > rvc.totalNum / 2 {
+                    allLevels[self.currentLevel] = 1
+                    writeAllKeys()
+                }
+                self.presentViewController(rvc, animated: true, completion: nil)})
             alert.addAction(actionYes)
              alert.addAction(actionNo)
             self.presentViewController(alert, animated: true, completion: nil)
@@ -164,9 +214,20 @@ class AnswerViewController: UIViewController {
     
     func updateQuestion() {
         currentQuestion++
-        if currentQuestion >= 4
+        if currentQuestion >= allQuestions.count
         {
             var rvc = ResultViewController()
+            rvc.timeNum = 60 - self.timeNum
+            rvc.rightNum = self.rightNum
+            rvc.totalNum = self.totalNum
+            rvc.wrongNum = self.totalNum - self.rightNum
+            if rvc.rightNum > rvc.totalNum / 2 {
+                currentLevel++
+                allLevels[currentLevel] = 1
+                 println("AnswerViewController updateQuestion currentLevel:\(currentLevel)")
+                println("AnswerViewController updateQuestion allLevels:\(allLevels)")
+                writeAllKeys()
+            }
              self.presentViewController(rvc, animated: true, completion: nil)
             return
         }
@@ -195,6 +256,32 @@ class AnswerViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    // Called when the view is about to made visible. Default does nothing
+    override  func viewWillAppear(animated: Bool){
+                countDownTimer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "updateTimer", userInfo: nil, repeats: true)
+        println("AnswerViewController -> viewWillAppear")
+        setOriginalState()
+    }
+    
+    // Called when the view has been fully transitioned onto the screen. Default does nothing
+    override func viewDidAppear(animated: Bool)  {
+        println("AnswerViewController -> viewDidAppear")
+    }
+    
+    // Called when the view is dismissed, covered or otherwise hidden. Default does nothing
+    override func viewWillDisappear(animated: Bool)
+    {
+        println("AnswerViewController -> viewWillDisappear")
+        countDownTimer?.invalidate()
+    }
+    
+    // Called after the view was dismissed, covered or otherwise hidden. Default does nothing
+    override func viewDidDisappear(animated: Bool)
+    {
+        println("AnswerViewController -> viewDidDisappear")
+    }
+
     
     
 }

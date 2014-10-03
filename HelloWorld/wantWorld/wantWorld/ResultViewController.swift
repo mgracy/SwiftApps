@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import UIKit.UIStoryboard
 class ResultViewController: UIViewController {
     
     var timeNum = 0
@@ -17,6 +18,8 @@ class ResultViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+         println("ResultViewController -> viewDidLoad")
         
         var backImageView = UIImageView()
         backImageView.frame = CGRectMake(0,0,480,320)
@@ -56,6 +59,19 @@ class ResultViewController: UIViewController {
         backButton.setImage(UIImage(named:"return.png"),forState:.Normal)
         self.view.addSubview(backButton)
         backButton.addTarget(self, action: "turnBack", forControlEvents: .TouchUpInside)
+        
+        var nextButton = UIButton()
+        nextButton.frame = CGRectMake(400,140,50,50)
+        nextButton.setImage(UIImage(named:"next.png"),forState:.Normal)
+        self.view.addSubview(nextButton)
+        nextButton.addTarget(self, action: "turnNextLevel", forControlEvents: .TouchUpInside)
+
+    }
+    
+    func turnNextLevel() {
+        var sb = UIStoryboard(name: "Main", bundle: nil)
+       var vc = sb.instantiateViewControllerWithIdentifier("ChooseViewController") as ChooseViewController
+        self.presentViewController(vc, animated: true, completion: nil)
 
     }
     
@@ -66,6 +82,28 @@ class ResultViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+      // Called when the view is about to made visible. Default does nothing
+   override  func viewWillAppear(animated: Bool){
+        println("ResultViewController -> viewWillAppear")
+    }
+    
+    // Called when the view has been fully transitioned onto the screen. Default does nothing
+   override func viewDidAppear(animated: Bool)  {
+             println("ResultViewController -> viewDidAppear")
+    }
+    
+    // Called when the view is dismissed, covered or otherwise hidden. Default does nothing
+   override func viewWillDisappear(animated: Bool)
+    {
+        println("ResultViewController -> viewWillDisappear")
+    }
+    
+    // Called after the view was dismissed, covered or otherwise hidden. Default does nothing
+   override func viewDidDisappear(animated: Bool)
+    {
+        println("ResultViewController -> viewDidDisappear")
     }
     
     
